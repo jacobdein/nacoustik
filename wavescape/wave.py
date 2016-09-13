@@ -1,5 +1,5 @@
 """
-Wave class, utilities
+Wave class
 
 Jacob Dein 2016
 wavescape
@@ -21,47 +21,37 @@ class Wave:
 	def __init__(self, filepath):
 		"""
 		
+		Parameters
+		----------
 		filepath: string
 			file path to wave file
-			
 		"""
 		
 		self.filepath = filepath
 		self.basename = path.basename(filepath)
 		
-		# sox properties
-		# bit depth
-		self.bit_depth = file_info.bitrate(filepath)
-		# number of samples
-		self.n_samples = file_info.num_samples(filepath)
-		# number of channels
-		self.n_channels = file_info.channels(filepath)
-		# channels
-		self.channels = np.arange(self.n_channels)
-		# duration
-		self.duration = file_info.duration(filepath)
+		# properties
+		self.bit_depth = file_info.bitrate(filepath)		# bit depth
+		self.n_samples = file_info.num_samples(filepath)	# number of samples
+		self.n_channels = file_info.channels(filepath)		# number of channels
+		self.channels = np.arange(self.n_channels)			# channels
+		self.duration = file_info.duration(filepath)		# duration
 		
 		def __str__(self):
 			return self.basename
 
 
 	def read(self, normalize = False):
-		"""Read wave file
-		
-		normalize: string
-			normalize file based on maximum value
-			default: False
 		"""
+		Read wave file
+		
+		Parameters
+		----------
+		normalize: string, default = False
+			normalize the wave based on the potential maximum value
+			that is determined by the bit depth of each sample
+		"""
+		
 		self.rate, self.samples = wavfile.read(self.filepath)
 		if normalize:
 			self.samples = self.samples / (2.**(self.bit_depth - 1))
-
-
-def sum_decibels(x):
-	"""Sum an array of decibels
-	
-	x: numpy array
-		array of decibel values to sum
-		
-		"""
-	return 10 * np.log10(np.sum(10**(x/10)))
