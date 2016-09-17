@@ -13,14 +13,6 @@ from scipy.fftpack import fft
 from scipy.signal import spectrogram, get_window
 
 
-def _psd_mean():
-	# compute psd mean (RMS mean)
-	psd_mean = ( psd.sum(axis = 2) / psd.shape[2] )
-	
-	# convert to decibels
-	psd_mean = 10 * np.log10(psd_mean / (pressure_reference**2))
-
-
 def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 		window_length = 1000, window_overlap = 50, window_shape = 'hann', 
 		pressure_reference = 20.):
