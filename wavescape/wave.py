@@ -40,8 +40,8 @@ class Wave:
 			self.duration = file_info.duration(wave)		# duration
 		else:
 			self.samples = wave
-			self.n_channels = wave.shape[1]
-			self.n_samples = len(wave)
+			self.n_samples = len(wave)						# number of samples
+			self.n_channels = wave.shape[1]					# number of channels
 		self.channels = np.arange(self.n_channels)			# channels
 		self.normalized = False								# normalized
 

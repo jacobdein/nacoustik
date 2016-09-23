@@ -10,12 +10,13 @@ License: MIT
 
 import numpy as np
 from wavescape.analysis import psd
+from wavescape.wave import Wave
 #from wavescape.colormaps import spectro_white
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
 
-def plot_spectrogram(wave, units = 'decibels', scaling = 'density', 
+def plot_spectrogram(wave, rate = None, units = 'decibels', scaling = 'density', 
 		window_length = 1000, window_overlap = 50, window_shape = 'hann', 
 		pressure_reference = 20.):
 	"""
@@ -25,6 +26,10 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	----------
 	wave: Wave object
 		reference to a wavescape Wave object
+		
+	rate: sample rate of signal, default = None
+		required when 'wave' is a numpy array
+		if 'None', the rate will be determined by the 'wave' object
 	
 	units: string, default = 'decibels'
 		result units in 'decibels' or 'watts'
@@ -46,6 +51,19 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 		reference pressure for measurements in air in micropascals
 	"""
 	
+	# check parameters
+	# check wave
+	if type(wave) is not Wave:
+		wave = Wave(wave)
+	if not hasattr(wave, 'samples'):
+		wave.read()
+	# check rate
+	if rate is None:
+		rate = wave.rate
+	# check units
+	if units not in ['decibels', 'watts']:
+		raise ValueError("'{0}' are not acceptable units".format(units))
+	
 	# parameters to add
 	cmap = 'gray_r'
 	dpi = 192
@@ -53,7 +71,7 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	# fig_height
 	
 	# compute psd
-	f, t, a, a_mean = psd(wave, units = units, scaling = 'density', kind = 'both', 
+	f, t, a, a_mean = psd(wave, rate, units = units, scaling = 'density', kind = 'both', 
 						  window_length = window_length, window_overlap = window_overlap, window_shape = window_shape, 							  pressure_reference = 20.)
 	
 	# configure figure
@@ -65,13 +83,13 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	fig.set_frameon(False)
 	
 	# specify frequency bins (width of 1 kiloherz)
-	bins = np.arange(0, (wave.rate / 2), 1000)
+	bins = np.arange(0, (rate / 2), 1000)
 	
 	# psd spectrogram left
 	ax_spec_l = plt.subplot2grid((2, 10), (0, 0), rowspan=1, colspan=9)
 	spec_l = ax_spec_l.pcolormesh(t, f, a[0], cmap=cmap, vmin=-150, vmax=-50)
-	ax_spec_l.set(ylim=([0, wave.rate / 2]),
-	              xticks = np.arange(30, wave.duration, 30).astype(np.int),
+	ax_spec_l.set(ylim=([0, rate / 2]),
+	              xticks = np.arange(30, (wave.n_samples / rate), 30).astype(np.int),
 	              yticks = bins.astype(np.int) + 1000)
 	ax_spec_l.tick_params(length=12,
 	                      bottom=False, labelbottom=False,
@@ -85,7 +103,7 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	ax_mean_l.plot(a_mean[0], f, color='black')
 	ax_mean_l.set(frame_on=False,
 	              xlim=(-150, -100),
-	              ylim=(0, wave.rate / 2),
+	              ylim=(0, rate / 2),
 	              xticks = [-150, -100])
 	ax_mean_l.tick_params(length=12,
 	                      bottom=False, labelbottom=False,
@@ -96,8 +114,8 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	# psd spectrogram right
 	ax_spec_r = plt.subplot2grid((2, 10), (1, 0), rowspan=1, colspan=9)
 	spec_r = ax_spec_r.pcolormesh(t, f, a[1], cmap=cmap, vmin=-150, vmax=-50)
-	ax_spec_r.set(ylim=([0, wave.rate / 2]),
-	              xticks = np.arange(30, wave.duration, 30).astype(np.int),
+	ax_spec_r.set(ylim=([0, rate / 2]),
+	              xticks = np.arange(30, (wave.n_samples / rate), 30).astype(np.int),
 	              yticks = bins.astype(np.int) + 1000)
 	ax_spec_r.tick_params(length=12,
 	                      bottom=False, labelbottom=False,
@@ -111,7 +129,7 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	ax_mean_r.plot(a_mean[1], f, color='black')
 	ax_mean_r.set(frame_on=False,
 	              xlim=(-150, -100),
-	              ylim=(0, wave.rate / 2),
+	              ylim=(0, rate / 2),
 	              xticks = [-150, -100])
 	ax_mean_r.tick_params(length=12,
 	                      bottom=False, labelbottom=False,
@@ -125,12 +143,12 @@ def plot_spectrogram(wave, units = 'decibels', scaling = 'density',
 	rcParams['font.sans-serif'] = ['Input Sans', 'sans-serif']
 	# add background to 'max frequency' text
 	bbox_properties = dict(boxstyle="square, pad=0", ec='white', fc='white')
-	ax_spec_l.text(x=0, y=(wave.rate / 2), s="{0:.0f} herz".format(wave.rate / 2),
+	ax_spec_l.text(x=0, y=(rate / 2), s="{0:.0f} herz".format(rate / 2),
 	               va='top', size=12, bbox=bbox_properties)
-	ax_mean_l.text(x=-100, y=(wave.rate / 2), s="left", ha='right', va='top', size=12)
-	ax_spec_r.text(x=0, y=(wave.rate / 2), s="{0:.0f} herz".format(wave.rate / 2), 
+	ax_mean_l.text(x=-100, y=(rate / 2), s="left", ha='right', va='top', size=12)
+	ax_spec_r.text(x=0, y=(rate / 2), s="{0:.0f} herz".format(rate / 2), 
 	               va='top', size=12, bbox=bbox_properties)
-	ax_mean_r.text(x=-100, y=(wave.rate / 2), s="right", ha='right', va='top', size=12)
+	ax_mean_r.text(x=-100, y=(rate / 2), s="right", ha='right', va='top', size=12)
 	
 	#plt.savefig(plot_filepath, dpi=(dpi / 3))
 	#fig.clear()
