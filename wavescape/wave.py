@@ -8,6 +8,7 @@ License: MIT
 """
 
 
+from sys import stderr
 from os import path
 from sox import file_info
 import numpy as np
@@ -18,40 +19,62 @@ class Wave:
 	"""Create wave object"""
 	
 	
-	def __init__(self, filepath):
+	def __init__(self, wave):
 		"""
 		
 		Parameters
 		----------
-		filepath: string
-			file path to wave file
+		wave: file path to WAV file or numpy array of a WAV signal samples
+			array must be in the shape (n_samples, n_channels)
+
 		"""
 		
-		self.filepath = filepath
-		self.basename = path.basename(filepath)
-		
-		# properties
-		self.bit_depth = file_info.bitrate(filepath)		# bit depth
-		self.n_samples = file_info.num_samples(filepath)	# number of samples
-		self.n_channels = file_info.channels(filepath)		# number of channels
+		if type(wave) is str:
+			self.filepath = wave
+			self.basename = path.basename(wave)
+			
+			# properties
+			self.bit_depth = file_info.bitrate(wave)		# bit depth
+			self.n_samples = file_info.num_samples(wave)	# number of samples
+			self.n_channels = file_info.channels(wave)		# number of channels
+			self.duration = file_info.duration(wave)		# duration
+		else:
+			self.samples = wave
+			self.n_channels = wave.shape[1]
+			self.n_samples = len(wave)
 		self.channels = np.arange(self.n_channels)			# channels
-		self.duration = file_info.duration(filepath)		# duration
-		
-		def __str__(self):
-			return self.basename
+		self.normalized = False								# normalized
+
+		# def __str__():
 
 
-	def read(self, normalize = False):
+	def normalize(self, value = None):
 		"""
-		Read wave file
+		Normalize wave file
 		
 		Parameters
 		----------
-		normalize: string, default = False
-			normalize the wave based on the potential maximum value
+		value: float, default = None
+			normalize the wave signal
+			If 'None', the wave will be normalized
+			based on the potential maximum value
 			that is determined by the bit depth of each sample
 		"""
 		
-		self.rate, self.samples = wavfile.read(self.filepath)
-		if normalize:
+		try:
 			self.samples = self.samples / (2.**(self.bit_depth - 1))
+			self.normalized = True
+		except AttributeError as error:
+			print(error, file = stderr)
+
+
+	def read(self):
+		"""
+		Read wave file
+
+		"""
+		
+		try:
+			self.rate, self.samples = wavfile.read(self.filepath)
+		except AttributeError as error:
+			print(error, file = stderr)
