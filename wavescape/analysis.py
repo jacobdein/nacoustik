@@ -8,12 +8,14 @@ License: MIT
 """
 
 
+from sys import stderr
 import numpy as np
 from scipy.fftpack import fft
 from scipy.signal import spectrogram, get_window
+from wavescape.wave import Wave
 
 
-def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
+def psd(wave, rate = None, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 		window_length = 1000, window_overlap = 50, window_shape = 'hann', 
 		pressure_reference = 20.):
 	"""
@@ -21,8 +23,11 @@ def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 	
 	Parameters
 	----------
-	wave: Wave object
-		reference to a wavescape Wave object
+	wave: Wave object, file path to a WAV file, or numpy array of WAV signal samples
+	
+	rate: sample rate of signal, default = None
+		required when 'wave' is a numpy array
+		if 'None', the rate will be determined by the 'wave' object
 	
 	units: string, default = 'decibels'
 		result units in 'decibels' or 'watts'
@@ -48,6 +53,15 @@ def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 	"""
 	
 	# check parameters
+	# check wave
+	if type(wave) is not Wave:
+		wave = Wave(wave)
+	if not hasattr(wave, 'samples'):
+		wave.read()
+	# check rate
+	if rate is None:
+		rate = wave.rate
+	# check units
 	if units not in ['decibels', 'watts']:
 		raise ValueError("'{0}' are not acceptable units".format(units))
 	if kind not in ['spectrogram', 'mean', 'both']:
@@ -63,7 +77,7 @@ def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 	psd = np.array( [ np.empty(shape = (int((window_length / 2) + 1), n_windows)) for channel in wave.channels ] )
 	for channel in wave.channels:
 		f, t, psd[channel] = spectrogram(wave.samples[:, channel], 
-										 fs = wave.rate, 
+										 fs = rate, 
 										 window = window_shape,
 										 nperseg = window_length, 
 										 noverlap = window_length * window_overlap, 
@@ -92,7 +106,7 @@ def psd(wave, units = 'decibels', scaling = 'density', kind = 'spectrogram',
 			return f, t, psd
 
 
-def sel(wave, units = 'decibels', bin_width = 1000, 
+def sel(wave, rate = None, units = 'decibels', bin_width = 1000, 
 		window_length = 1000, window_overlap = 50, window_shape = 'hann', 
 		pressure_reference = 20.):
 	"""
@@ -100,8 +114,11 @@ def sel(wave, units = 'decibels', bin_width = 1000,
 	
 	Parameters
 	----------
-	wave : Wave object
-		reference to a wavescape Wave object
+	wave: Wave object, file path to a WAV file, or numpy array of WAV signal samples
+	
+	rate: sample rate of signal, default = None
+		required when 'wave' is a numpy array
+		if 'None', the rate will be determined by the 'wave' object
 	
 	units : string, default = 'decibels'
 		result units in 'decibels' or 'watts'
@@ -127,11 +144,20 @@ def sel(wave, units = 'decibels', bin_width = 1000,
 	"""
 	
 	# check parameters
+	# check wave
+	if type(wave) is not Wave:
+		wave = Wave(wave)
+	if not hasattr(wave, 'samples'):
+		wave.read()
+	# check rate
+	if rate is None:
+		rate = wave.rate
+	# check units
 	if units not in ['decibels', 'watts']:
 		raise ValueError("'{0}' are not acceptable units".format(units))
 		
 	# compute power spectrum
-	f, t, pss = psd(wave, units = 'watts', scaling = 'spectrum',
+	f, t, pss = psd(wave, rate, units = 'watts', scaling = 'spectrum',
 					window_length = window_length, window_overlap = window_overlap, window_shape = window_shape)
 	
 	# compute and apply 'b' term
@@ -141,7 +167,7 @@ def sel(wave, units = 'decibels', bin_width = 1000,
 	pss = (1 / b) * pss
 
 	# determine frequency bins
-	bins = np.arange(0, (wave.rate / 2), bin_width)
+	bins = np.arange(0, (rate / 2), bin_width)
 	bin_bound_indicies = np.searchsorted(f, bins)
 	# include last index
 	bin_bound_indicies = np.append(bin_bound_indicies, pss.shape[1])
@@ -154,7 +180,7 @@ def sel(wave, units = 'decibels', bin_width = 1000,
 	    sel[i] = (pss[:, low_bound:high_bound, :].sum())
 	
 	# divide by wave duration in minutes
-	sel = sel / (wave.n_samples / wave.rate / 60)
+	sel = sel / (wave.n_samples / rate / 60)
 	
 	# calculate anthrophony and biophony
 	anthrophony = sel[0:2].sum()
