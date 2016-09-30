@@ -1,2 +1,3 @@
-# wavscape
-Python tools for soundscape wave file analysis
+# nacoustik
+
+Python tools for analysis of the natural acoustic environment

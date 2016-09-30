@@ -1,6 +1,6 @@
 """
 Jacob Dein 2016
-wavescape
+nacoustik
 Author: Jacob Dein
 License: MIT
 """
@@ -8,12 +8,12 @@ License: MIT
 
 from setuptools import setup, find_packages
 
-setup(	name='wavescape',
+setup(	name='nacoustik',
 		version='0.1.0',
 		description='Python tools for soundscape wave file analysis',
 		author='Jacob Dein',
 		author_email='jake@jacobdein.com',
-		url='https://github.com/jacobdein/wavescape',
+		url='https://github.com/jacobdein/nacoustik',
 		packages=find_packages(),
 		license='MIT',
 		platforms='any',

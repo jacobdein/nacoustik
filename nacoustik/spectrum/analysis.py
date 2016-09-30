@@ -2,7 +2,7 @@
 Tools for spectral analysis
 
 Jacob Dein 2016
-wavescape
+nacoustik
 Author: Jacob Dein
 License: MIT
 """
@@ -10,7 +10,7 @@ License: MIT
 
 import numpy as np
 from scipy.signal import spectrogram, get_window
-from wavescape import Wave
+from nacoustik import Wave
 
 
 def psd(wave, rate = None, units = 'decibels', scaling = 'density', kind = 'spectrogram',

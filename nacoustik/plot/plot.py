@@ -2,16 +2,16 @@
 plots
 
 Jacob Dein 2016
-wavescape
+nacoustik
 Author: Jacob Dein
 License: MIT
 """
 
 
 import numpy as np
-from wavescape.spectrum import psd
-from wavescape import Wave
-#from wavescape.colormaps import spectro_white
+from nacoustik.spectrum import psd
+from nacoustik import Wave
+#from nacoustik.colormaps import spectro_white
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
 
@@ -25,7 +25,7 @@ def plot_spectrogram(wave, rate = None, units = 'decibels', scaling = 'density',
 	Parameters
 	----------
 	wave: Wave object
-		reference to a wavescape Wave object
+		reference to a nacoustik Wave object
 		
 	rate: sample rate of signal, default = None
 		required when 'wave' is a numpy array
