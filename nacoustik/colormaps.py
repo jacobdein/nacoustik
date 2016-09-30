@@ -2,7 +2,7 @@
 colormaps
 
 Jacob Dein 2016
-wavescape
+nacoustik
 Author: Jacob Dein
 License: MIT
 """
