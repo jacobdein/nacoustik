@@ -8,11 +8,9 @@ License: MIT
 """
 
 
-from sys import stderr
 import numpy as np
-from scipy.fftpack import fft
 from scipy.signal import spectrogram, get_window
-from wavescape.wave import Wave
+from wavescape import Wave
 
 
 def psd(wave, rate = None, units = 'decibels', scaling = 'density', kind = 'spectrogram',

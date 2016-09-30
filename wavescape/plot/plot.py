@@ -9,8 +9,8 @@ License: MIT
 
 
 import numpy as np
-from wavescape.analysis import psd
-from wavescape.wave import Wave
+from wavescape.spectrum import psd
+from wavescape import Wave
 #from wavescape.colormaps import spectro_white
 import matplotlib.pyplot as plt
 from matplotlib import rcParams
