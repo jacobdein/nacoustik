@@ -84,7 +84,13 @@ def calculate_aci(a, time_delta, block_duration=1.):
         containing the calculated aci for each frequency band
     """
     
-    # determine number of histogram bins
+    # check parameters
+    if a.ndim == 2:
+        a = np.expand_dims(a, 0)
+    elif a.ndim != 3:
+        raise ValueError("'a' must be 2- or 3-dimensional")
+    
+    # calculate and return aci
     return _calculate_aci(a, 
                           time_delta, 
                           block_duration,
