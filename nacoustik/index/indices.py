@@ -88,7 +88,7 @@ def calculate_aci(a, time_delta, block_duration=1.):
     if a.ndim == 2:
         a = np.expand_dims(a, 0)
     elif a.ndim != 3:
-        raise ValueError("'a' must be 2- or 3-dimensional")
+        raise TypeError("'a' must be 2- or 3-dimensional")
     
     # calculate and return aci
     return _calculate_aci(a, 
