@@ -173,7 +173,11 @@ def remove_anthrophony(ale, time_delta, freq_delta, cutoffs=(1000, 11000)):
 	"""
 	
 	# label
-	labels, n_features = _label(ale)
+	s = generate_binary_structure(2, 2)
+	labels = np.empty_like(ale, dtype=np.int32)
+	n_features = np.empty(shape=(2), dtype=np.int32)
+	for channel in range(labels.shape[0]):
+		labels[channel], n_features[channel] = label(ale[channel])#, structure=s)
 	
 	roi_windows = []
 	for channel in range(labels.shape[0]):
@@ -194,9 +198,18 @@ def remove_anthrophony(ale, time_delta, freq_delta, cutoffs=(1000, 11000)):
 			index += 1
 		rois.append(rois_channel)
 	
-	low_cutoffs = _find_low_rois(cutoffs[0], rois, labels.shape[0], freq_delta)
-	high_indices = _find_high_rois(cutoffs[1], rois, labels.shape[0], freq_delta)
-	
+	#low_cutoffs
+	low_cutoffs = []
+	for channel in range(labels.shape[0]):
+		index = np.ceil(cutoffs[0] / freq_delta).astype(np.int32)
+		low_cutoffs.append(np.searchsorted(rois[channel][:, 0], index))
+
+	#high_indices
+	high_indices = []
+	for channel in range(labels.shape[0]):
+		index = np.ceil(cutoffs[1] / freq_delta).astype(np.int32)
+		high_indices.append(np.where(rois[channel][:, 1] >= index)[0])
+	  
 	for channel in range(labels.shape[0]):
 		for i in range(0, low_cutoffs[channel]):
 			a_roi = labels[channel, rois[channel][i, 0]:rois[channel][i, 1], rois[channel][i, 2]:rois[channel][i, 3]]
